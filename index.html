@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>尋找失落的水源 - 山林智慧挑戰</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        /* 山林自然風格配色 */
+        :root {
+            --primary-color: #2e7d32;   /* 森林綠 */
+            --secondary-color: #558b2f; /* 嫩草綠 */
+            --accent-color: #ff6f00;    /* 太陽橘 */
+            --bg-color: #e8f5e9;        /*極淡綠背景 */
+            --text-color: #333;
+            --wood-color: #795548;      /* 木頭棕 */
+            --water-color: #0288d1;     /* 溪水藍 */
+        }
+
+        body { 
+            font-family: 'Noto Sans TC', sans-serif;
+            max-width: 800px; margin: 0 auto; padding: 20px; 
+            background-color: var(--bg-color); color: var(--text-color);
+            background-image: linear-gradient(135deg, #e8f5e9 25%, transparent 25%), linear-gradient(225deg, #e8f5e9 25%, transparent 25%), linear-gradient(45deg, #e8f5e9 25%, transparent 25%), linear-gradient(315deg, #e8f5e9 25%, #c8e6c9 25%);
+            background-position:  10px 0, 10px 0, 0 0, 0 0;
+            background-size: 20px 20px;
+            background-repeat: repeat;
+            min-height: 100vh;
+        }
+
+        h1 { color: var(--primary-color); text-align: center; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); margin-bottom: 10px; }
+        .subtitle { text-align: center; color: var(--wood-color); font-size: 1.1em; margin-bottom: 30px; }
+
+        /* 容器樣式 */
+        .quiz-container { 
+            background: rgba(255, 255, 255, 0.95); padding: 30px; border-radius: 20px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15); border: 4px solid var(--primary-color); 
+            position: relative; overflow: hidden; min-height: 500px;
+        }
+
+        /* 按鈕樣式 */
+        .btn {
+            background-color: var(--primary-color); color: white; border: none;
+            padding: 12px 25px; font-size: 1.1em; border-radius: 50px;
+            cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+            margin: 5px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 8px rgba(0,0,0,0.25); }
+        .btn:active { transform: translateY(1px); }
+        
+        .btn-wood { background-color: var(--wood-color); }
+        .btn-water { background-color: var(--water-color); }
+        .btn-accent { background-color: var(--accent-color); }
+
+        /* 題目與選項 */
+        .question-box { font-size: 1.3em; font-weight: bold; margin-bottom: 20px; line-height: 1.6; color: var(--primary-color); }
+        .question-img { max-width: 100%; border-radius: 10px; margin: 10px 0; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        
+        .option-btn { 
+            display: block; width: 100%; padding: 15px; margin: 10px 0; text-align: left; 
+            background: white; border: 2px solid #ddd; border-radius: 12px; font-size: 1.1em;
+            cursor: pointer; transition: all 0.3s; color: #555;
+        }
+        .option-btn:hover { border-color: var(--primary-color); background-color: #f1f8e9; }
+        
+        .correct { background-color: #c8e6c9 !important; border-color: #2e7d32 !important; color: #1b5e20; }
+        .wrong { background-color: #ffcdd2 !important; border-color: #c62828 !important; color: #b71c1c; }
+
+        /* 關卡地圖 */
+        .level-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 15px; padding: 20px; }
+        .level-btn {
+            width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--wood-color);
+            background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.3s; font-weight: bold; color: var(--wood-color);
+            box-shadow: 0 4px 0 var(--wood-color);
+        }
+        .level-btn:hover:not(:disabled) { transform: scale(1.1); background: #fff3e0; }
+        .level-btn.locked { background: #e0e0e0; border-color: #9e9e9e; color: #9e9e9e; cursor: not-allowed; box-shadow: none;}
+        .level-btn.perfect { border-color: #ffd700; color: #f57f17; background: #fffde7; }
+
+        /* 解析區塊 */
+        #explanation-area { 
+            margin-top: 20px; padding: 15px; background-color: #e3f2fd; 
+            border-left: 5px solid var(--water-color); border-radius: 5px; display: none; 
+            animation: fadeIn 0.5s;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* 進度條 */
+        .progress-bar { width: 100%; height: 10px; background: #ddd; border-radius: 5px; margin-bottom: 20px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--primary-color); width: 0%; transition: width 0.3s; }
+
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <!-- 歡迎畫面 -->
+    <div id="welcome-screen">
+        <h1>🌿 尋找失落的水源</h1>
+        <p class="subtitle">原住民族智慧與自然生態挑戰</p>
+        <div style="text-align: center;">
+            <p>請輸入勇士/公主的大名：</p>
+            <input type="text" id="username" placeholder="您的名字" style="padding: 10px; font-size: 1.1em; border-radius: 5px; border: 1px solid #ccc; width: 60%;">
+            <br><br>
+            <button class="btn btn-wood" onclick="startGame()">🏹 開始探險</button>
+        </div>
+        <p style="text-align: center; color: #777; font-size: 0.9em; margin-top: 50px;">共 165 道關卡，等待您來挑戰！</p>
+    </div>
+
+    <!-- 關卡選擇畫面 -->
+    <div id="level-screen" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="color: var(--wood-color);">🗺️ 探索地圖</h2>
+            <div>
+                <span id="user-display" style="font-weight: bold; color: var(--primary-color); margin-right: 10px;"></span>
+                <button class="btn btn-sm btn-water" onclick="showHistory()">📜 紀錄</button>
+            </div>
+        </div>
+        <div id="level-grid" class="level-grid"></div>
+        <div style="text-align: center; margin-top: 20px;">
+            <button class="btn btn-sm btn-accent" onclick="reviewMistakes()">🔥 錯題特訓</button>
+            <button class="btn btn-sm" style="background: #999;" onclick="logout()">🚪 登出</button>
+        </div>
+    </div>
+
+    <!-- 測驗畫面 -->
+    <div id="quiz-screen" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span id="level-indicator" style="font-weight: bold; color: var(--wood-color);">Level 1</span>
+            <button class="btn btn-sm" style="background: #ccc; padding: 5px 10px;" onclick="backToLevels()">🏳️ 放棄</button>
+        </div>
+        <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+        
+        <div id="question-area">
+            <div id="question-text" class="question-box">題目載入中...</div>
+            <img id="question-img" class="question-img" style="display: none;">
+            <div id="options-area"></div>
+        </div>
+
+        <div id="explanation-area">
+            <strong>💡 山林智慧：</strong>
+            <p id="explanation-text"></p>
+        </div>
+
+        <div style="text-align: right; margin-top: 20px;">
+            <button id="next-btn" class="btn btn-water" style="display: none;" onclick="nextQuestion()">下一題 ➔</button>
+        </div>
+    </div>
+
+    <!-- 結算畫面 -->
+    <div id="result-screen" style="display: none; text-align: center;">
+        <h2 style="color: var(--primary-color); font-size: 2em;">🎉 挑戰完成！</h2>
+        <p style="font-size: 1.2em;">得分：<span id="score-display" style="color: var(--accent-color); font-weight: bold; font-size: 1.5em;"></span> / 100</p>
+        <div id="star-rating" style="font-size: 3em; margin: 20px 0;">⭐⭐⭐</div>
+        <p id="result-comment" style="color: #555;"></p>
+        <br>
+        <button class="btn btn-wood" onclick="backToLevels()">🗺️ 返回地圖</button>
+        <button class="btn btn-water" onclick="retryLevel()">🔄 再試一次</button>
+    </div>
+    
+    <!-- 歷史紀錄畫面 -->
+    <div id="history-screen" style="display: none;">
+        <h2>📜 探險紀錄</h2>
+        <ul id="history-list" style="list-style: none; padding: 0; max-height: 400px; overflow-y: auto;"></ul>
+        <button class="btn btn-wood" onclick="backToLevels()">🔙 返回</button>
+    </div>
+
+</div>
+
+<script>
+    // 遊戲全域變數
+    let allQuestions = [];
+    let currentQuestions = [];
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let currentLevel = 1;
+    let userProgress = {}; // 記錄每個關卡的最高分 {1: 100, 2: 80...}
+    let mistakes = []; // 錯題庫
+    
+    // 關卡設定：每關 10 題，共 17 關 (最後一關 5 題)
+    const QUESTIONS_PER_LEVEL = 10;
+    const TOTAL_LEVELS = 17;
+
+    // 初始化
+    window.onload = async function() {
+        try {
+            const response = await fetch('questions.json');
+            allQuestions = await response.json();
+            console.log("題目載入成功，共 " + allQuestions.length + " 題");
+            loadProgress();
+        } catch (e) {
+            alert("題目載入失敗，請確保 questions.json 存在！");
+            console.error(e);
+        }
+    };
+
+    function loadProgress() {
+        const saved = localStorage.getItem('water_quiz_progress');
+        if (saved) userProgress = JSON.parse(saved);
+        const savedMistakes = localStorage.getItem('water_quiz_mistakes');
+        if (savedMistakes) mistakes = JSON.parse(savedMistakes);
+    }
+
+    function saveProgress() {
+        localStorage.setItem('water_quiz_progress', JSON.stringify(userProgress));
+        localStorage.setItem('water_quiz_mistakes', JSON.stringify(mistakes));
+    }
+
+    function startGame() {
+        const name = document.getElementById('username').value.trim();
+        if (!name) { alert("請輸入名字！"); return; }
+        document.getElementById('user-display').innerText = "👤 " + name;
+        document.getElementById('welcome-screen').style.display = 'none';
+        document.getElementById('level-screen').style.display = 'block';
+        renderLevels();
+    }
+
+    function renderLevels() {
+        const grid = document.getElementById('level-grid');
+        grid.innerHTML = '';
+        
+        for (let i = 1; i <= TOTAL_LEVELS; i++) {
+            const btn = document.createElement('div');
+            btn.className = 'level-btn';
+            
+            // 判斷解鎖狀態 (第一關預設解鎖，之後需前一關 >= 60 分)
+            let locked = false;
+            if (i > 1) {
+                const prevScore = userProgress[i-1];
+                if (prevScore === undefined || prevScore < 60) locked = true;
+            }
+
+            if (locked) {
+                btn.classList.add('locked');
+                btn.innerHTML = `<span>🔒</span><span style="font-size:0.8em;">${i}</span>`;
+            } else {
+                const score = userProgress[i];
+                if (score === 100) btn.classList.add('perfect');
+                btn.innerHTML = `<span style="font-size:1.2em;">${i}</span><span style="font-size:0.7em; color:#666;">${score !== undefined ? score + '分' : 'GO'}</span>`;
+                btn.onclick = () => startLevel(i);
+            }
+            grid.appendChild(btn);
+        }
+    }
+
+    function startLevel(level) {
+        currentLevel = level;
+        // 計算題目範圍
+        const start = (level - 1) * QUESTIONS_PER_LEVEL;
+        const end = Math.min(start + QUESTIONS_PER_LEVEL, allQuestions.length);
+        currentQuestions = allQuestions.slice(start, end);
+        
+        if (currentQuestions.length === 0) { alert("此關卡暫無題目！"); return; }
+        
+        score = 0;
+        currentQuestionIndex = 0;
+        document.getElementById('level-screen').style.display = 'none';
+        document.getElementById('result-screen').style.display = 'none';
+        document.getElementById('quiz-screen').style.display = 'block';
+        document.getElementById('level-indicator').innerText = `Level ${level}`;
+        
+        showQuestion();
+    }
+
+    function showQuestion() {
+        const q = currentQuestions[currentQuestionIndex];
+        document.getElementById('question-text').innerText = q.question;
+        
+        // 圖片處理
+        const imgEl = document.getElementById('question-img');
+        if (q.image && q.image.trim() !== "") {
+            imgEl.src = q.image;
+            imgEl.style.display = 'block';
+        } else {
+            imgEl.style.display = 'none';
+        }
+
+        // 選項處理
+        const optsArea = document.getElementById('options-area');
+        optsArea.innerHTML = '';
+        
+        // 隱藏解析與下一題按鈕
+        document.getElementById('explanation-area').style.display = 'none';
+        document.getElementById('next-btn').style.display = 'none';
+
+        // 更新進度條
+        const pct = ((currentQuestionIndex) / currentQuestions.length) * 100;
+        document.getElementById('progress-fill').style.width = pct + '%';
+
+        q.options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(btn, opt, q);
+            optsArea.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(btn, userAns, qData) {
+        // 鎖定所有按鈕
+        const allBtns = document.querySelectorAll('.option-btn');
+        allBtns.forEach(b => b.disabled = true);
+
+        // 提取選項代號 (A, B, C, D)
+        const getCode = (s) => {
+            const match = s.match(/\(([A-D])\)/);
+            return match ? match[1] : "";
+        };
+
+        const userCode = getCode(userAns);
+        const ansCode = getCode(qData.answer);
+        
+        const isCorrect = (userCode === ansCode);
+
+        if (isCorrect) {
+            btn.classList.add('correct');
+            score++;
+            confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
+            // 答對從錯題庫移除
+            mistakes = mistakes.filter(id => id !== qData.id);
+        } else {
+            btn.classList.add('wrong');
+            // 標示正確答案
+            allBtns.forEach(b => {
+                if (getCode(b.innerText) === ansCode) b.classList.add('correct');
+            });
+            // 加入錯題庫
+            if (!mistakes.includes(qData.id)) mistakes.push(qData.id);
+        }
+        
+        saveProgress();
+
+        // 顯示解析
+        const expText = document.getElementById('explanation-text');
+        expText.innerText = qData.explanation || "暫無詳細解析。";
+        document.getElementById('explanation-area').style.display = 'block';
+        document.getElementById('next-btn').style.display = 'inline-block';
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < currentQuestions.length) {
+            showQuestion();
+        } else {
+            finishLevel();
+        }
+    }
+
+    function finishLevel() {
+        document.getElementById('quiz-screen').style.display = 'none';
+        document.getElementById('result-screen').style.display = 'block';
+        
+        const total = currentQuestions.length;
+        const finalScore = Math.round((score / total) * 100);
+        
+        document.getElementById('score-display').innerText = finalScore;
+        
+        // 評語與星星
+        let stars = "";
+        let comment = "";
+        if (finalScore === 100) { stars = "⭐⭐⭐"; comment = "太神啦！你是山林之王！🦁"; }
+        else if (finalScore >= 80) { stars = "⭐⭐"; comment = "很棒喔！繼續保持！🌿"; }
+        else if (finalScore >= 60) { stars = "⭐"; comment = "及格了，加油！🍄"; }
+        else { stars = "🌑"; comment = "別氣餒，再讀一次課文吧！📖"; }
+        
+        document.getElementById('star-rating').innerText = stars;
+        document.getElementById('result-comment').innerText = comment;
+
+        // 更新最高分
+        if (!userProgress[currentLevel] || finalScore > userProgress[currentLevel]) {
+            userProgress[currentLevel] = finalScore;
+            saveProgress();
+        }
+        
+        // 記錄歷史
+        const historyList = document.getElementById('history-list');
+        const li = document.createElement('li');
+        li.innerHTML = `Level ${currentLevel}: <strong>${finalScore}分</strong> <span style="font-size:0.8em; color:#888;">(${new Date().toLocaleTimeString()})</span>`;
+        historyList.prepend(li);
+    }
+
+    function backToLevels() {
+        document.getElementById('quiz-screen').style.display = 'none';
+        document.getElementById('result-screen').style.display = 'none';
+        document.getElementById('history-screen').style.display = 'none';
+        document.getElementById('level-screen').style.display = 'block';
+        renderLevels();
+    }
+
+    function retryLevel() {
+        startLevel(currentLevel);
+    }
+
+    function logout() {
+        location.reload();
+    }
+
+    function showHistory() {
+        document.getElementById('level-screen').style.display = 'none';
+        document.getElementById('history-screen').style.display = 'block';
+    }
+
+    function reviewMistakes() {
+        if (mistakes.length === 0) {
+            alert("目前沒有錯題紀錄，太棒了！");
+            return;
+        }
+        // 篩選出錯題
+        currentQuestions = allQuestions.filter(q => mistakes.includes(q.id));
+        score = 0;
+        currentQuestionIndex = 0;
+        currentLevel = "Mistake"; // 特殊關卡標記
+        
+        document.getElementById('level-screen').style.display = 'none';
+        document.getElementById('quiz-screen').style.display = 'block';
+        document.getElementById('level-indicator').innerText = `錯題特訓 (${currentQuestions.length}題)`;
+        showQuestion();
+    }
+</script>
+
+</body>
+</html>
