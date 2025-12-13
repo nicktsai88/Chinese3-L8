@@ -347,7 +347,7 @@
         const ITEMS_PER_ROW = 3; 
         
         // 🟢 自訂音樂
-        const PLAYLIST = ['music1.mp3', 'music2.mp3', 'music3.mp3'];
+        const PLAYLIST = ['sounds/bgm1.mp3', 'sounds/bgm2.mp3', 'sounds/bgm3.mp3'];
         const APP_PREFIX = 'water_source_'; 
 
         let currentTrackIndex = 0; let isPlaying = false;
@@ -355,8 +355,8 @@
         let userName = "", currentLevel = 1, userAnswers = {}, isMistakeMode = false, isFavoriteMode = false;
         let currentAvatar = "images/avatar_boy1.jpg"; 
         
-        let audioCorrect = new Audio('https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg'); audioCorrect.volume = 0.4;
-        let audioFail = new Audio('https://actions.google.com/sounds/v1/cartoon/cartoon_cowbell.ogg'); audioFail.volume = 0.4;
+        let audioCorrect = new Audio('sounds/correct.mp3'); audioCorrect.volume = 0.4;
+        let audioFail = new Audio('sounds/fail.mp3'); audioFail.volume = 0.4;
         const bgmPlayer = document.getElementById('bgm-player');
         bgmPlayer.volume = 0.3; bgmPlayer.onended = nextTrack;
 
