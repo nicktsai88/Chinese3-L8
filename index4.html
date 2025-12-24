@@ -123,25 +123,16 @@
             gap: 15px; justify-items: center;
         }
         .level-grid-btn {
-            width: 100%; aspect-ratio: 1; min-height: 110px; /* 加大高度以確保圖示顯示 */
-            border-radius: 15px;
+            width: 100%; aspect-ratio: 1; border-radius: 15px;
             background: #fff; border: 3px solid var(--primary-color);
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             cursor: pointer; transition: 0.2s; box-shadow: 0 4px 0 #81c784; color: var(--text-color);
-            padding: 5px;
         }
         .level-grid-btn:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 6px 0 #81c784; background: #e8f5e9; }
         .level-grid-btn:active:not(:disabled) { transform: translateY(2px); box-shadow: none; }
         .level-grid-btn:disabled { border-color: #bdc3c7; color: #bdc3c7; background: #f0f0f0; cursor: not-allowed; box-shadow: none;}
-        
-        /* 修改點：指定 Emoji 字體並加大 */
-        .lvl-icon { 
-            font-size: 3em; 
-            margin-bottom: 8px; 
-            font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", "Android Emoji", sans-serif;
-            line-height: 1.1;
-        }
-        
+        /* 修改點：加大圖示 */
+        .lvl-icon { font-size: 2.5em; margin-bottom: 5px; }
         .lvl-score { font-size: 0.85em; font-weight: bold; color: var(--correct-color); }
         /* 修改點：新增標題樣式，加大字體 */
         .lvl-label { font-size: 1.3em; font-weight: bold; font-family: "KaiTi", "BiauKai", serif;}
@@ -589,21 +580,9 @@
         // --- 標準實驗模式 (Standard Mode) ---
         function renderLevelGrid() {
             const grid = document.getElementById('level-grid');
-            if(!grid) return console.error("Level grid element not found!");
-            
             grid.innerHTML = "";
-            let progress;
-            try {
-                progress = JSON.parse(localStorage.getItem(getUserKey('quizProgress'))) || { maxLevel: 1, scores: {} };
-            } catch(e) {
-                progress = { maxLevel: 1, scores: {} };
-            }
+            const progress = JSON.parse(localStorage.getItem(getUserKey('quizProgress'))) || { maxLevel: 1, scores: {} };
             
-            // 確保 scores 存在
-            if(!progress.scores) progress.scores = {};
-            // 確保 maxLevel 存在
-            if(!progress.maxLevel) progress.maxLevel = 1;
-
             LEVEL_CONFIG.forEach((_, idx) => {
                 const level = idx + 1;
                 const btn = document.createElement('button');
@@ -755,11 +734,6 @@
             
             // Progress logic
             let progress = JSON.parse(localStorage.getItem(getUserKey('quizProgress'))) || { maxLevel: 1, scores: {} };
-            
-            // 防呆：確保 scores 存在
-            if(!progress.scores) progress.scores = {};
-            if(!progress.maxLevel) progress.maxLevel = 1;
-
             let oldScore = progress.scores[quizState.level] || 0;
             if(finalScore > oldScore) progress.scores[quizState.level] = finalScore;
             
@@ -1115,11 +1089,8 @@
             document.getElementById('collection-screen').style.display = 'block';
             const grid = document.getElementById('collection-grid');
             grid.innerHTML = "";
-            const progress = JSON.parse(localStorage.getItem(getUserKey('quizProgress'))) || { maxLevel: 1, scores: {} }; // bug fix
+            const progress = JSON.parse(localStorage.getItem(getUserKey('quizProgress'))) || { levelScores: {} }; // bug fix: renamed scores to match
             
-            // 防呆
-            if(!progress.scores) progress.scores = {};
-
             const scores = progress.scores || {};
 
             for(let i=1; i<=LEVEL_CONFIG.length; i++) {
