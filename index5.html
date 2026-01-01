@@ -71,122 +71,6 @@
         .mode-btn { border: 1px solid #bdc3c7; background: #fff; padding: 5px 10px; border-radius: 20px; font-size: 0.8em; cursor: pointer; display: flex; align-items: center; gap: 5px;}
         .mode-btn:hover { border-color: var(--primary-color); color: var(--primary-color); }
 
-        /* --- AI Chat Window Styles --- */
-        #ai-chat-btn {
-            border: 2px solid var(--favorite-color);
-            color: var(--favorite-color);
-            background: #fff;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        #ai-chat-btn:hover {
-            background: var(--favorite-color);
-            color: #fff;
-        }
-
-        #ai-chat-window {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 350px;
-            height: 500px;
-            background: #fff;
-            border-radius: 15px;
-            box-shadow: 0 5px 25px rgba(0,0,0,0.2);
-            z-index: 20001; /* Higher than modal */
-            display: none;
-            flex-direction: column;
-            overflow: hidden;
-            border: 1px solid #ddd;
-            font-size: 1rem;
-            transition: opacity 0.3s ease;
-        }
-
-        .ai-header {
-            background: var(--favorite-color);
-            color: #fff;
-            padding: 10px 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: bold;
-        }
-
-        .ai-messages {
-            flex: 1;
-            padding: 15px;
-            overflow-y: auto;
-            background: #f9f9f9;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .message {
-            max-width: 80%;
-            padding: 10px 12px;
-            border-radius: 15px;
-            word-wrap: break-word;
-            font-size: 0.95em;
-            line-height: 1.4;
-        }
-
-        .msg-user {
-            align-self: flex-end;
-            background: var(--primary-color);
-            color: #fff;
-            border-bottom-right-radius: 2px;
-        }
-
-        .msg-ai {
-            align-self: flex-start;
-            background: #eee;
-            color: #333;
-            border-bottom-left-radius: 2px;
-        }
-
-        .ai-input-area {
-            padding: 10px;
-            border-top: 1px solid #ddd;
-            display: flex;
-            gap: 5px;
-            background: #fff;
-        }
-
-        .ai-input-area input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 20px;
-            outline: none;
-            font-size: 0.95em;
-        }
-
-        .ai-input-area button {
-            background: var(--favorite-color);
-            color: #fff;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        
-        .ai-input-area button:hover {
-            opacity: 0.9;
-        }
-
-        /* Animation */
-        .slide-up {
-            animation: slideUp 0.3s ease forwards;
-        }
-        @keyframes slideUp {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
         /* --- 容器通用 --- */
         .container-box {
             background: rgba(255, 255, 255, 0.95); padding: 25px; border-radius: 15px;
@@ -407,8 +291,6 @@
             body { padding-top: 80px; }
             #yt-wrapper { display: none; position: fixed; bottom: 10px; right: 10px; width: 120px; height: 67px; top: auto; left: auto; transform: none; }
             #yt-wrapper.mobile-visible { display: block; }
-            
-            #ai-chat-window { width: 90%; right: 5%; bottom: 80px; height: 60vh; }
         }
 
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
@@ -439,11 +321,6 @@
 
                 <button id="toggle-video-btn" class="ctrl-btn active" onclick="toggleVideoDisplay()">👁️</button>
                 
-                <!-- AI Button -->
-                <button id="ai-chat-btn" class="mode-btn" onclick="toggleChatWindow()">
-                    <span>🤖 AI 書僮</span>
-                </button>
-
                 <button id="mode-btn" class="mode-btn" onclick="changeMode()">
                     <span id="mode-icon">🔁</span>
                 </button>
@@ -603,27 +480,9 @@
         </div>
     </div>
 
-    <!-- AI Chat Window -->
-    <div id="ai-chat-window" class="slide-up">
-        <div class="ai-header">
-            <span>🤖 AI 學習書僮</span>
-            <span style="cursor:pointer;" onclick="toggleChatWindow()">×</span>
-        </div>
-        <div id="ai-messages" class="ai-messages">
-            <div class="message msg-ai">你好！我是你的 AI 書僮，有什麼問題都可以問我喔！(請先設定 API Key)</div>
-        </div>
-        <div class="ai-input-area">
-            <input type="text" id="ai-input" placeholder="輸入問題..." onkeypress="handleAiKeypress(event)">
-            <button onclick="sendAiMessage()">發送</button>
-        </div>
-    </div>
-
     <script src="https://www.youtube.com/iframe_api"></script>
     <script>
         // 設定與全域變數
-        const GEMINI_API_KEY = "AIzaSyBJO0V8svBYzcdAT_6vkzQ2bXtrkOpojo4"; // 請在此填入您的 API Key
-        const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=`;
-
         // 修改點 2: 總題數 165 題，分為 8 關 (7*20 + 1*25)
         const LEVEL_CONFIG = [20, 20, 20, 20, 20, 20, 20, 25];
         // 影片播放清單
@@ -1290,98 +1149,6 @@
         function closeCardModal() { document.getElementById('card-modal').style.display = 'none'; }
         
         function logout() { location.reload(); }
-
-        // --- AI Chat Logic ---
-        function toggleChatWindow() {
-            const win = document.getElementById('ai-chat-window');
-            if (win.style.display === 'flex') {
-                win.style.display = 'none';
-            } else {
-                win.style.display = 'flex';
-                // Check API key on open
-                if(!GEMINI_API_KEY) {
-                    // Only alert once per session or just check if message exists
-                    const msgs = document.getElementById('ai-messages');
-                    if(!msgs.innerHTML.includes("尚未設定 API Key")) {
-                        appendAiMessage("msg-ai", "⚠️ 尚未設定 API Key。請在程式碼變數 `GEMINI_API_KEY` 中填入您的 Google Gemini API Key 才能正常使用喔！");
-                    }
-                }
-            }
-        }
-
-        function handleAiKeypress(e) {
-            if(e.key === 'Enter') sendAiMessage();
-        }
-
-        async function sendAiMessage() {
-            const input = document.getElementById('ai-input');
-            const text = input.value.trim();
-            if(!text) return;
-
-            if(!GEMINI_API_KEY) {
-                alert("請先設定 API Key 才能使用 AI 功能！");
-                return;
-            }
-
-            // Clear input
-            input.value = '';
-
-            // Show User Message
-            appendAiMessage("msg-user", text);
-
-            // Show Loading
-            const loadingId = appendAiMessage("msg-ai", "輸入中...");
-
-            try {
-                const systemPrompt = "你是一個 AI 學習小幫手。回答必須簡明扼要，直接切入核心，不要廢話。針對使用者的問題直接回答即可，不需要刻意將話題引導回原本的課程內容或特定主題。一律使用繁體中文。";
-                
-                const payload = {
-                    contents: [{
-                        parts: [{
-                            text: systemPrompt + "\n\nUser Question: " + text
-                        }]
-                    }]
-                };
-
-                const response = await fetch(GEMINI_API_URL + GEMINI_API_KEY, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                const data = await response.json();
-                
-                // Remove loading
-                const loadingMsg = document.getElementById(loadingId);
-                if(loadingMsg) loadingMsg.remove();
-
-                if (data.candidates && data.candidates[0].content) {
-                    const reply = data.candidates[0].content.parts[0].text;
-                    appendAiMessage("msg-ai", reply);
-                } else {
-                    console.error(data);
-                    appendAiMessage("msg-ai", "抱歉，我暫時無法回答這個問題 (API Error)。");
-                }
-
-            } catch (error) {
-                const loadingMsg = document.getElementById(loadingId);
-                if(loadingMsg) loadingMsg.remove();
-                
-                appendAiMessage("msg-ai", "連線錯誤，請檢查網路或 API Key。");
-                console.error(error);
-            }
-        }
-
-        function appendAiMessage(cls, text) {
-            const container = document.getElementById('ai-messages');
-            const div = document.createElement('div');
-            div.className = `message ${cls}`;
-            div.innerText = text;
-            div.id = 'msg-' + Date.now();
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight;
-            return div.id;
-        }
 
         // --- YouTube & Audio ---
         function onYouTubeIframeAPIReady() {
