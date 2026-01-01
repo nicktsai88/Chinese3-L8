@@ -608,6 +608,7 @@
         <div class="ai-header">
             <span>🤖 AI 學習書僮</span>
             <div style="display:flex; gap:10px;">
+                <span style="cursor:pointer;" onclick="resetApiKey()" title="重設 API Key">🔑</span>
                 <span style="cursor:pointer;" onclick="toggleChatWindow()">×</span>
             </div>
         </div>
@@ -624,8 +625,7 @@
     <script src="https://www.youtube.com/iframe_api"></script>
     <script>
         // 設定與全域變數
-        // 重要：您已選擇將 API Key 寫死在程式碼中 (個人使用)
-        const GEMINI_API_KEY = "AIzaSyDY5642ZmeseGJ3t283Zj1dW3d4hFnsfpk"; // 請在此填入您的 API Key
+        const STORAGE_KEY_GEMINI = "water_source_gemini_key";
         const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=`;
 
         // 修改點 2: 總題數 165 題，分為 8 關 (7*20 + 1*25)
@@ -1302,13 +1302,6 @@
                 win.style.display = 'none';
             } else {
                 win.style.display = 'flex';
-                // 檢查是否已設定 API Key (變數)
-                if(!GEMINI_API_KEY) {
-                    const msgs = document.getElementById('ai-messages');
-                    if(!msgs.innerHTML.includes("尚未設定 API Key")) {
-                        appendAiMessage("msg-ai", "⚠️ 尚未設定 API Key。請在程式碼變數 `GEMINI_API_KEY` 中填入您的 Google Gemini API Key。");
-                    }
-                }
             }
         }
 
@@ -1316,14 +1309,33 @@
             if(e.key === 'Enter') sendAiMessage();
         }
 
+        function getApiKey() {
+            let key = localStorage.getItem(STORAGE_KEY_GEMINI);
+            if (!key) {
+                key = prompt("請輸入您的 Google Gemini API Key 以啟用 AI 書僮功能：\n(Key 將儲存在您的瀏覽器中，不會上傳伺服器)");
+                if (key) {
+                    localStorage.setItem(STORAGE_KEY_GEMINI, key.trim());
+                }
+            }
+            return key;
+        }
+
+        function resetApiKey() {
+            if (confirm("確定要清除目前儲存的 API Key 嗎？")) {
+                localStorage.removeItem(STORAGE_KEY_GEMINI);
+                alert("API Key 已清除，下次發送訊息時請重新輸入。");
+            }
+        }
+
         async function sendAiMessage() {
             const input = document.getElementById('ai-input');
             const text = input.value.trim();
             if(!text) return;
 
-            // 直接使用變數 GEMINI_API_KEY
-            if(!GEMINI_API_KEY) {
-                alert("請先在程式碼中設定 GEMINI_API_KEY 變數！");
+            // 取得 API Key (如果沒有會跳出 prompt)
+            let apiKey = getApiKey();
+            if(!apiKey) {
+                appendAiMessage("msg-ai", "⚠️ 未輸入 API Key，無法使用 AI 功能。");
                 return;
             }
 
@@ -1347,7 +1359,7 @@
                     }]
                 };
 
-                const response = await fetch(GEMINI_API_URL + GEMINI_API_KEY, {
+                const response = await fetch(GEMINI_API_URL + apiKey, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -1364,7 +1376,16 @@
                     appendAiMessage("msg-ai", reply);
                 } else if (data.error) {
                     console.error(data.error);
-                    appendAiMessage("msg-ai", "API 錯誤：" + data.error.message + " (請檢查 Key 是否正確)");
+                    const errorMsg = "API 錯誤：" + data.error.message;
+                    appendAiMessage("msg-ai", errorMsg);
+                    
+                    // 如果是 Key 無效 (400 Bad Request 或 錯誤訊息包含 key)
+                    if (data.error.code === 400 || data.error.message.toLowerCase().includes('key')) {
+                        if(confirm("API Key 似乎無效，是否要立即重設 Key？")) {
+                            localStorage.removeItem(STORAGE_KEY_GEMINI);
+                            alert("已清除無效 Key，請再次發送訊息以重新輸入。");
+                        }
+                    }
                 } else {
                     console.error(data);
                     appendAiMessage("msg-ai", "抱歉，我暫時無法回答這個問題。");
