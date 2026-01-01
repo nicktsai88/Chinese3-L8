@@ -607,12 +607,15 @@
     <div id="ai-chat-window" class="slide-up">
         <div class="ai-header">
             <span>🤖 AI 學習書僮</span>
-            <span style="cursor:pointer;" onclick="toggleChatWindow()">×</span>
+            <div style="display:flex; gap:10px;">
+                <span style="cursor:pointer;" onclick="toggleChatWindow()">×</span>
+            </div>
         </div>
         <div id="ai-messages" class="ai-messages">
-            <div class="message msg-ai">你好！我是你的 AI 書僮，有什麼問題都可以問我喔！(請先設定 API Key)</div>
+            <!-- Dynamic Content -->
+            <div class="message msg-ai">你好！我是你的 AI 書僮，有什麼問題都可以問我喔！</div>
         </div>
-        <div class="ai-input-area">
+        <div id="ai-input-wrapper" class="ai-input-area">
             <input type="text" id="ai-input" placeholder="輸入問題..." onkeypress="handleAiKeypress(event)">
             <button onclick="sendAiMessage()">發送</button>
         </div>
@@ -621,7 +624,8 @@
     <script src="https://www.youtube.com/iframe_api"></script>
     <script>
         // 設定與全域變數
-        const GEMINI_API_KEY = "AIzaSyC-SwV4tGiFpIkuZ09U5l_4mFZK6gdw4uk"; 
+        // 重要：您已選擇將 API Key 寫死在程式碼中 (個人使用)
+        const GEMINI_API_KEY = "AIzaSyDY5642ZmeseGJ3t283Zj1dW3d4hFnsfpk"; // 請在此填入您的 API Key
         const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=`;
 
         // 修改點 2: 總題數 165 題，分為 8 關 (7*20 + 1*25)
@@ -1298,12 +1302,11 @@
                 win.style.display = 'none';
             } else {
                 win.style.display = 'flex';
-                // Check API key on open
+                // 檢查是否已設定 API Key (變數)
                 if(!GEMINI_API_KEY) {
-                    // Only alert once per session or just check if message exists
                     const msgs = document.getElementById('ai-messages');
                     if(!msgs.innerHTML.includes("尚未設定 API Key")) {
-                        appendAiMessage("msg-ai", "⚠️ 尚未設定 API Key。請在程式碼變數 `GEMINI_API_KEY` 中填入您的 Google Gemini API Key 才能正常使用喔！");
+                        appendAiMessage("msg-ai", "⚠️ 尚未設定 API Key。請在程式碼變數 `GEMINI_API_KEY` 中填入您的 Google Gemini API Key。");
                     }
                 }
             }
@@ -1318,8 +1321,9 @@
             const text = input.value.trim();
             if(!text) return;
 
+            // 直接使用變數 GEMINI_API_KEY
             if(!GEMINI_API_KEY) {
-                alert("請先設定 API Key 才能使用 AI 功能！");
+                alert("請先在程式碼中設定 GEMINI_API_KEY 變數！");
                 return;
             }
 
@@ -1358,16 +1362,19 @@
                 if (data.candidates && data.candidates[0].content) {
                     const reply = data.candidates[0].content.parts[0].text;
                     appendAiMessage("msg-ai", reply);
+                } else if (data.error) {
+                    console.error(data.error);
+                    appendAiMessage("msg-ai", "API 錯誤：" + data.error.message + " (請檢查 Key 是否正確)");
                 } else {
                     console.error(data);
-                    appendAiMessage("msg-ai", "抱歉，我暫時無法回答這個問題 (API Error)。");
+                    appendAiMessage("msg-ai", "抱歉，我暫時無法回答這個問題。");
                 }
 
             } catch (error) {
                 const loadingMsg = document.getElementById(loadingId);
                 if(loadingMsg) loadingMsg.remove();
                 
-                appendAiMessage("msg-ai", "連線錯誤，請檢查網路或 API Key。");
+                appendAiMessage("msg-ai", "連線錯誤，請檢查網路。");
                 console.error(error);
             }
         }
