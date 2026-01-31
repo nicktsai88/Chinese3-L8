@@ -625,15 +625,15 @@
     <script src="https://www.youtube.com/iframe_api"></script>
     <script>
         // 設定與全域變數
-        const STORAGE_KEY_GEMINI = "water_source_gemini_key";
+        const STORAGE_KEY_GEMINI = "Chinese3-L8_gemini_key";
         const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=`;
 
         // 修改點 2: 總題數 165 題，分為 8 關 (7*20 + 1*25)
         const LEVEL_CONFIG = [20, 20, 20, 20, 20, 20, 20, 25];
         // 影片播放清單
         const YOUTUBE_PLAYLIST = ['iLAS0vy7-78', '5zeyr-_G_4w', 'aZXJATkkDoA', 'UKbZ4r88z3Q', 'aGZk0nEBWv4', 'advioIb8-gE'];
-        // 修改點 3: LocalStorage 前綴改為 water_source_
-        const APP_PREFIX = 'water_source_';
+        // 修改點 3: LocalStorage 前綴改為 Chinese3-L8_
+        const APP_PREFIX = 'Chinese3-L8_';
         
         let player, isPlayerReady = false, isPlaying = false;
         let allQuestions = [], currentQuizData = [];
